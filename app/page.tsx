@@ -1,20 +1,23 @@
 'use client';
 
 import Image from "next/image";
-import { useChat } from 'ai/react';
-
-type Message = {
-  content: string;
-  role: string;
-}
+import { useChat, Message } from 'ai/react';
+import { useState } from "react";
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function Home() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat();
+  const [error, setError] = useState<string | null>(null);
 
-  let makeRequest = () => {
-    // Send the message to the server and process code
-    
-  }
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    onFinish: (message: Message) => {
+      console.log('Message:', message);
+    },
+    onError: (error: Error) => {
+      toast(error.message, { type: 'error' });
+      console.error(error);
+    }
+  });
+
 
   let extractCodeFromMarkdown = (message: string): string => {
     const codeBlockRegex = /```[\s\S]*?```/g;
@@ -61,6 +64,7 @@ export default function Home() {
       <div className="w-1/2 bg-gray-800">
       {/* Right side content will go here */}
       </div>
+      <ToastContainer />
     </div>
   );
 }

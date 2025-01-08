@@ -15,7 +15,8 @@
     "openai": "^4.77.4",
     "openai-edge": "^1.2.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-toastify": "^11.0.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
