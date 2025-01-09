@@ -15,9 +15,10 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [sandboxResult, setSandboxResult] = useState<SandboxResult | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
+  const [activeTab, setActiveTab] = useState<'code' | 'preview'>('preview');
   const [activeCode, setActiveCode] = useState<string>('');
-  
+  const [loadingWebpage, setLoadingWebpage] = useState<boolean>(false);
+
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     initialMessages: [
       {
@@ -66,12 +67,16 @@ Make sure you rewrite the code each time.
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
+
           },
-          body: JSON.stringify({ code })
+          body: JSON.stringify({ 
+            code, 
+            sandboxId: sandboxResult ? sandboxResult.sandboxId : null
+          })
         })
         .then(res => res.json())
         .then((data: SandboxResult) => {
-          setSandboxResult(data);
+          loadPageIntoIframe(data);
         })
         .catch(err => {
           setError(err.message);
@@ -85,6 +90,27 @@ Make sure you rewrite the code each time.
     }
   });
 
+  let loadPageIntoIframe = async (data: SandboxResult) => {
+    setLoadingWebpage(true);
+    try {
+      const response = await fetch('http://localhost:8080/' + data.url, {
+        method: 'HEAD',
+        mode: 'cors',
+      });
+      if(response.ok){
+        console.log("Successfully loaded the webpage in the main try loop.");
+        setLoadingWebpage(false);
+        setSandboxResult(data);
+      } else {
+        console.log("Failed to load the webpage in the main try loop: ", response);
+        throw new Error('Failed to load the webpage.');
+      }
+    } catch (error) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log("Finished waiting for the sandbox to load.");
+      await loadPageIntoIframe(data);
+    }
+  }
 
   let extractCodeFromMarkdown = (message: string): string => {
     const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
@@ -94,7 +120,6 @@ Make sure you rewrite the code each time.
     }
     return '';
   }
-
 
   return (
     <div className="flex w-full h-screen bg-gray-900 font-[family-name:var(--font-geist-sans)]">
@@ -130,12 +155,12 @@ Make sure you rewrite the code each time.
       </div>
       <div className="w-1/2 bg-gray-800">
         <div className="flex justify-center space-x-4 p-4">
-          <button
+          {/* <button
         className={`px-4 py-2 rounded-full ${activeTab === 'code' ? 'bg-blue-600' : 'bg-gray-700'}`}
         onClick={() => setActiveTab('code')}
           >
         Code
-          </button>
+          </button> */}
           <button
         className={`px-4 py-2 rounded-full ${activeTab === 'preview' ? 'bg-blue-600' : 'bg-gray-700'}`}
         onClick={() => setActiveTab('preview')}
@@ -154,17 +179,18 @@ Make sure you rewrite the code each time.
           {sandboxResult &&
             <div className="flex-col">
               <iframe
-                src={sandboxResult?.url}
+                src={'http://localhost:8080/' +sandboxResult?.url}
                 className="w-full h-full border-none"
                 title="Preview"
+                sandbox="allow-forms allow-scripts allow-same-origin"
+                loading="lazy"
               />
               <div className="p-2 bg-gray-900 text-white text-sm">
-              <p>Loading from: <a href={sandboxResult.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">{sandboxResult.url}</a></p>
               </div>
             </div>
           }
           {!sandboxResult && (
-            <p>URL not loaded.</p>
+            <p>{loadingWebpage ? 'Loading...' : 'URL not loaded'}</p>
           )}
         </div>
           )}
