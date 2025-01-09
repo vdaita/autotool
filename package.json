@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.15",
+    "@e2b/code-interpreter": "^1.0.4",
     "ai": "^4.0.30",
     "next": "15.1.4",
     "openai": "^4.77.4",
