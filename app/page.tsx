@@ -5,9 +5,17 @@ import { useChat, Message } from 'ai/react';
 import { useState } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 
+type SandboxResult = {
+  sandboxId: string;
+  url: string;
+}
+
 export default function Home() {
   const [error, setError] = useState<string | null>(null);
-
+  const [sandboxResult, setSandboxResult] = useState<SandboxResult | null>(null);
+  const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
+  const [activeCode, setActiveCode] = useState<string>('');
+  
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     onFinish: (message: Message) => {
       console.log('Message:', message);
@@ -62,7 +70,41 @@ export default function Home() {
       </form>
       </div>
       <div className="w-1/2 bg-gray-800">
-      {/* Right side content will go here */}
+        <div className="flex justify-center space-x-4 p-4">
+          <button
+        className={`px-4 py-2 rounded-full ${activeTab === 'code' ? 'bg-blue-600' : 'bg-gray-700'}`}
+        onClick={() => setActiveTab('code')}
+          >
+        Code
+          </button>
+          <button
+        className={`px-4 py-2 rounded-full ${activeTab === 'preview' ? 'bg-blue-600' : 'bg-gray-700'}`}
+        onClick={() => setActiveTab('preview')}
+          >
+        Preview
+          </button>
+        </div>
+        <div className="p-4">
+          {activeTab === 'code' ? (
+            <div className="text-white flex justify-center items-center h-full">
+              {!activeCode && <p>Code not loaded.</p>}
+              <pre>{activeCode}</pre>
+            </div>
+          ) : (
+        <div className="text-white flex justify-center items-center h-full">
+          {sandboxResult &&
+            <iframe
+              src={sandboxResult?.url}
+              className="w-full h-full border-none"
+              title="Preview"
+            />
+          }
+          {!sandboxResult && (
+            <p>URL not loaded.</p>
+          )}
+        </div>
+          )}
+        </div>
       </div>
       <ToastContainer />
     </div>
