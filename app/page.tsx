@@ -93,9 +93,8 @@ Make sure you rewrite the code each time.
   let loadPageIntoIframe = async (data: SandboxResult) => {
     setLoadingWebpage(true);
     try {
-      const response = await fetch('http://localhost:8080/' + data.url, {
+      const response = await fetch('/api/proxy?url=' + data.url, {
         method: 'HEAD',
-        mode: 'cors',
       });
       if(response.ok){
         console.log("Successfully loaded the webpage in the main try loop.");
@@ -176,15 +175,18 @@ Make sure you rewrite the code each time.
             </div>
           ) : (
         <div className="text-white flex justify-center items-center h-full">
+            <iframe
+              key={1}
+              src={'/api/proxy?url=https://example.com'}
+              // src={'/api/proxy?url=' +sandboxResult?.url}
+              className="w-full h-full border-none"
+              title="Preview"
+              sandbox="allow-forms allow-scripts allow-same-origin"
+              loading="lazy"
+            />
           {sandboxResult &&
             <div className="flex-col">
-              <iframe
-                src={'http://localhost:8080/' +sandboxResult?.url}
-                className="w-full h-full border-none"
-                title="Preview"
-                sandbox="allow-forms allow-scripts allow-same-origin"
-                loading="lazy"
-              />
+ 
               <div className="p-2 bg-gray-900 text-white text-sm">
               </div>
             </div>
