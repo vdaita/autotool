@@ -17,6 +17,7 @@
     "openai-edge": "^1.2.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^9.0.3",
     "react-toastify": "^11.0.2"
   },
   "devDependencies": {

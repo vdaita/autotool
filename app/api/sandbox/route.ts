@@ -18,22 +18,27 @@ export async function POST(req: Request) {
 
     if(!foundSandbox || !sandboxId){
         const sandbox = await Sandbox.create({
-            timeoutMs: 60 * 1000 * 5
+            timeoutMs: 60 * 1000 * 5,
+            envs: {
+                OPENAI_API_KEY: process.env.OPENAI_API_KEY!
+            }
         });
         await sandbox.files.write('app.py', code);
         const command = await sandbox.commands.run('streamlit run app.py --server.port=81', {
             background: true // TODO: handle errors via the Application frontend
         });
-        return {
-            sandboxId: sandbox.sandboxId,
-            url: `https://${sandbox.getHost(81)}`
-        }
+        return new Response(JSON.stringify(
+            {
+                sandboxId: sandbox.sandboxId,
+                url: `https://${sandbox.getHost(81)}`
+            }
+        ));
     } else {
         const sandbox = await Sandbox.connect(sandboxId);
         await sandbox.files.write('app.py', code);
-        return {
+        return new Response(JSON.stringify({
             sandboxId: sandbox.sandboxId,
             url: `https://${sandbox.getHost(81)}`
-        }
+        }));
     }
 }
