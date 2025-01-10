@@ -90,25 +90,31 @@ Make sure you rewrite the code each time.
     }
   });
 
-  let loadPageIntoIframe = async (data: SandboxResult) => {
+  let loadPageIntoIframe = async (data: SandboxResult, dontWait?: boolean) => {
     setLoadingWebpage(true);
-    try {
-      const response = await fetch('/api/proxy?url=' + data.url, {
-        method: 'HEAD',
-      });
-      if(response.ok){
-        console.log("Successfully loaded the webpage in the main try loop.");
-        setLoadingWebpage(false);
-        setSandboxResult(data);
-      } else {
-        console.log("Failed to load the webpage in the main try loop: ", response);
-        throw new Error('Failed to load the webpage.');
-      }
-    } catch (error) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log("Finished waiting for the sandbox to load.");
-      await loadPageIntoIframe(data);
+    if(!dontWait){
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
+    setSandboxResult(data);
+    setLoadingWebpage(false);
+
+    // try {
+    //   const response = await fetch(data.url, {
+    //     method: 'HEAD',
+    //   });
+    //   if(response.ok){
+    //     console.log("Successfully loaded the webpage in the main try loop.");
+    //     setLoadingWebpage(false);
+    //     setSandboxResult(data);
+    //   } else {
+    //     console.log("Failed to load the webpage in the main try loop: ", response);
+    //     throw new Error('Failed to load the webpage.');
+    //   }
+    // } catch (error) {
+    //   await new Promise(resolve => setTimeout(resolve, 2000));
+    //   console.log("Finished waiting for the sandbox to load.");
+    //   await loadPageIntoIframe(data);
+    // }
   }
 
   let extractCodeFromMarkdown = (message: string): string => {
@@ -154,18 +160,13 @@ Make sure you rewrite the code each time.
       </div>
       <div className="w-1/2 bg-gray-800">
         <div className="flex justify-center space-x-4 p-4">
-          {/* <button
-        className={`px-4 py-2 rounded-full ${activeTab === 'code' ? 'bg-blue-600' : 'bg-gray-700'}`}
-        onClick={() => setActiveTab('code')}
+          {sandboxResult && 
+            <button 
+            onClick={() => loadPageIntoIframe(sandboxResult, true)}
+            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
-        Code
-          </button> */}
-          <button
-        className={`px-4 py-2 rounded-full ${activeTab === 'preview' ? 'bg-blue-600' : 'bg-gray-700'}`}
-        onClick={() => setActiveTab('preview')}
-          >
-        Preview
-          </button>
+            Reload Page
+          </button>}
         </div>
         <div className="p-4">
           {activeTab === 'code' ? (
@@ -175,20 +176,25 @@ Make sure you rewrite the code each time.
             </div>
           ) : (
         <div className="text-white flex justify-center items-center h-full">
-            <iframe
-              key={1}
-              src={'/api/proxy?url=https://example.com'}
-              // src={'/api/proxy?url=' +sandboxResult?.url}
-              className="w-full h-full border-none"
-              title="Preview"
-              sandbox="allow-forms allow-scripts allow-same-origin"
-              loading="lazy"
-            />
+
           {sandboxResult &&
             <div className="flex-col">
- 
-              <div className="p-2 bg-gray-900 text-white text-sm">
-              </div>
+                <iframe 
+                src={sandboxResult?.url} 
+                type="text/html"
+                className="w-full h-[calc(100vh-10rem)]"
+                loading="lazy"
+                ></iframe>
+                <div className="p-2 bg-gray-900 text-white text-sm">
+                  <a 
+                    href={sandboxResult.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-400 hover:text-blue-300"
+                  >
+                    Pulling from {sandboxResult.url}
+                  </a>
+                </div>
             </div>
           }
           {!sandboxResult && (
